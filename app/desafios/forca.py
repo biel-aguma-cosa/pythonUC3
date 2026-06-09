@@ -57,8 +57,8 @@ letter_count = 0
 _input = ''
 
 #test word
-word['word'] = 'ácarínhozínho'
-length = len(word['word'])
+#word['word'] = 'ácarínhozínho'
+#length = len(word['word'])
 
 def reset():
   global msg_i,lives,used_letters,word,length,normal_word
