@@ -35,10 +35,26 @@ reset()
 
 rays = []
 fov  = np.deg2rad(97)
-ray_num = 7
+ray_num = 100
 rays = np.array([np.array(center,np.float64) for i in range(ray_num)])
 angle = 0
 
+shader = np.array(pygame.PixelArray(pygame.Surface([WIDTH,HEIGHT])))[:,:]+1
+def distance(point,line,pixels):
+    dx = rays[:,0] - center[0]
+    dy = rays[:,1] - center[1]
+    cx = rays[:,0] * center[1]
+    cy = rays[:,1] * center[0]
+    px = pixels[..., 0, np.newaxis]
+    py = pixels[..., 1, np.newaxis]
+    
+    top = np.abs(dy*px-dx*py+cx-cy)
+
+    bottom = np.sqrt(np.pow(dy,2)+np.pow(dx,2))
+
+    result = top/bottom
+print(shader)
+print(shader.shape)
 
 while running:
     key = pygame.key.get_pressed()
@@ -95,8 +111,8 @@ while running:
     hit   = GRID[np.int64(rays[:,0]//20),np.int64(rays[:,1]//20)] == 1
     result = np.zeros(ray_num)
     result[ hit] = 1 - np.linalg.norm(rays[hit] - center, axis=1)/400
-    print(GRID[np.int64(rays[:,0]//20),np.int64(rays[:,1]//20)])
-    print(result)
+    #print(GRID[np.int64(rays[:,0]//20),np.int64(rays[:,1]//20)])
+    #print(result)
 
     for ray in tuple(rays.copy()):
         pygame.draw.line(screen,'red',center,ray)
@@ -104,6 +120,7 @@ while running:
     pygame.draw.circle(screen,'black',center,5,1)
 
     pygame.display.flip()
+    pygame.surfarray.blit_array(screen,shader)
     dt = clock.tick(30)/1000
     t0 += dt
 running = False
