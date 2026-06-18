@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1rem;
+            padding: 0;
+            font-size: 16px;
+            font-family: monospace;
+            height: 100%;
+            background-color: rgb(83, 48, 43);
+        }
+        a {
+            text-decoration: none !important;
+            color: red;
+        }
+
+        #wrap {
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(1, 1, 1, 0);
+            max-width: 1080px;
+            flex-grow: 1;
+            margin: auto;
+            height: 100%;
+        }
+        #wrap > header {
+            display: flex;
+            flex-direction: row;
+            justify-content: left;
+            padding-left: 3rem;
+            background-color: chocolate;
+            color: blanchedalmond;
+            border-radius: 2rem 2rem 0 0;
+        }
+        h1 {
+            font-size: 3rem;
+        }
+        #wrap > nav {
+            display: flex;
+            gap: .5rem;
+            padding-left: 1rem;
+            flex-direction: row;
+            background-color: blanchedalmond;
+            border-radius: .1rem;
+            padding-top: .6rem;
+            padding-bottom: .6rem;
+        }
+        #wrap > nav > div.button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: chocolate;
+            width: 100px;
+            height: 2rem;
+            border-radius: .6rem;
+        }
+        #wrap > nav a {
+            font-size: 1rem;
+            color: blanchedalmond;
+        }
+        #wrap > main {
+            display: flex;
+            flex-direction: column;
+            background-color:tan;
+            flex-grow: 1;
+            padding: .5rem;
+            gap: .5rem;
+        }
+        #wrap > main > article,#wrap > main > aside {
+            background-color: blanchedalmond;
+            padding: 1rem;
+            color: chocolate;
+            border-radius: 1.5rem;
+        }
+        #wrap > main > aside:first-child {
+            border-radius: 1rem;
+        }
+        #wrap > footer {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: blanchedalmond;
+            height: 3rem;
+            border-bottom-left-radius: 2rem;
+            border-bottom-right-radius: 2rem;
+            background-color: chocolate;
+            margin-bottom: 2rem;
+        }
+        body > aside {
+            margin-left: 10px;
+            max-width: 256px;
+            height: 90%;
+        }
+        .lock {
+            flex-grow: 1;
+            background-color: brown;
+            border-radius: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            color: antiquewhite;
+        }
+        @media screen and (max-width:630px) {
+            .lock, h1 {
+                font-size: 2rem;
+            }
+            html, body {
+                margin: none;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+    <div id="wrap">
+        <header>
+            <h1>T&iacute;tulo muito legal &trade;</h1>
+        </header>
+        <nav>
+            <div class="button">
+                <a href="">link1</a>
+            </div>
+            <div class="button">
+                <a href="">link2</a>
+            </div>
+        </nav>
+        <main>
+            <article>
+                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Voluptates vel, facilis alias accusantium dicta quibusdam laboriosam! Cupiditate, harum rerum. Animi pariatur ipsa quo repellendus quasi. Optio natus fuga iure quae!</p>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sint, minima. Ipsum, dolores a saepe temporibus deserunt cupiditate, est illum ducimus quod esse nihil libero necessitatibus omnis fugiat sed optio dolorum.</p>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus accusantium doloremque, perferendis suscipit consectetur labore a ad, officiis iste autem dolores asperiores nisi ea ipsa. Officia doloribus praesentium voluptatum ea!</p>
+            </article>
+            <aside>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <label for="age">Confirme sua idade: </label>
+                    <input type="date" name="age" id="age" required>
+                    <button type="submit">verificar</button>
+                </form>
+            </aside>
+            {% if content %}
+            <aside>
+                <img src="https://media.tenor.com/IM836m7kzcQAAAAi/spinning-cat.gif" alt="">
+            </aside>
+            {% else %}
+            <div class="lock">
+                <strong>CONTENT BLOCKED!</strong>
+            </div>
+        </main>
+        <footer>texto</footer>
+    </div>
+</body>
+<script>
+
+</script>
+</html>

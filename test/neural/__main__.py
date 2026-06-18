@@ -35,11 +35,12 @@ reset()
 
 rays = []
 fov  = np.deg2rad(97)
-ray_num = 100
+ray_num = 360
 rays = np.array([np.array(center,np.float64) for i in range(ray_num)])
 angle = 0
 
 shader = np.array(pygame.PixelArray(pygame.Surface([WIDTH,HEIGHT])))[:,:]+1
+print(shader.shape)
 def distance(point,line,pixels):
     dx = rays[:,0] - center[0]
     dy = rays[:,1] - center[1]
@@ -53,7 +54,7 @@ def distance(point,line,pixels):
     bottom = np.sqrt(np.pow(dy,2)+np.pow(dx,2))
 
     result = top/bottom
-print(shader)
+eh = shader[:,:,np.newaxis]*(255,255,255)
 print(shader.shape)
 
 while running:
@@ -113,13 +114,17 @@ while running:
     result[ hit] = 1 - np.linalg.norm(rays[hit] - center, axis=1)/400
     #print(GRID[np.int64(rays[:,0]//20),np.int64(rays[:,1]//20)])
     #print(result)
-
-    for ray in tuple(rays.copy()):
-        pygame.draw.line(screen,'red',center,ray)
+    #pygame.draw.lines(screen,'red',True,rays.copy())
+    #pygame.draw.polygon(screen,'red',rays,)
+    #for ray in tuple(rays.copy()):
+    #    pygame.draw.line(screen,'red',center,ray)
+    pygame.draw.line(screen,'red',center,rays[0])
+    pygame.draw.line(screen,'red',center,rays[len(rays)-1])
     #pygame.draw.line(screen,'blue',center,((mouse[0]*32/(n+0.00000000000001))+center[0],(mouse[1]*32/n+0.0000000000000001)+center[1]),1)
     pygame.draw.circle(screen,'black',center,5,1)
 
     pygame.display.flip()
+    bop = []
     pygame.surfarray.blit_array(screen,shader)
     dt = clock.tick(30)/1000
     t0 += dt
