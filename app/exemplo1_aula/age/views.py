@@ -13,7 +13,7 @@ def home(request):
 
         if age.years >= 18:
             content = True
-            response = 'Conteúdo Liberado'
+            response = 'Conte&uacute;do Liberado'
         else:
             response = 'D:<'
 
