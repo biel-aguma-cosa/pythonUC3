@@ -1,111 +1,83 @@
-import torch, pygame, time, threading, random
+import pygame, numpy as np
 
-WIDTH, HEIGHT = 600,400
+class Raycast():
+    def __init__(self):
+        self.grid = np.zeros((600,400),np.float64)
+        self.origin = np.array((300,200),np.float64)
+        self.ray_count = 60
+        self.iterations = 300
+        self.angle = np.deg2rad(-45)
+        self.fov = np.deg2rad(90)
 
-pygame.init()
-screen = pygame.display.set_mode((WIDTH,HEIGHT))
-clock = pygame.time.Clock()
+        self.ray_index = np.arange(self.ray_count)
 
-running = True
+        self.rays = np.ones((self.ray_count,2),np.float64)
+        self.direction = np.zeros((self.ray_count,2),np.float64)
 
-t0 = 0
-dt = 0
+        self.center = np.array([300,200])
+        
+    def run(self,parent):
+        self.rays = np.ones((self.ray_count,2),np.float64)*self.center
+        for i in range(self.iterations):
+            self.direction[self.ray_index,0] = np.cos((self.ray_index-(self.ray_count-1)/2)*(self.fov/(self.ray_count-1))+self.angle)
+            self.direction[self.ray_index,1] = np.sin((self.ray_index-(self.ray_count-1)/2)*(self.fov/(self.ray_count-1))+self.angle)
+            x = np.clip(np.int64(self.rays[:,0]),0,self.grid.shape[0]-1)
+            y = np.clip(np.int64(self.rays[:,1]),0,self.grid.shape[1]-1)
+            clean = self.grid[x,y] == 0
+            self.rays[clean] += self.direction[clean]
+        distances = 1-np.linalg.norm(self.rays-self.center,axis=1)/self.iterations
+        pass
+        return [self.center, self.rays, distances]
 
-if torch.cuda.is_available():
-    print("--- cuda")
-    torch.device("cuda")
-else:
-    print("--- cpu")
-    torch.device("cpu")
+class Game():
+    WIDTH = 600
+    HEIGHT = 400
+    def __init__(self):
 
-GRID0 = torch.zeros((30,30))
+        #main
+        pygame.init()
+        self.screen = pygame.display.set_mode((self.WIDTH,self.HEIGHT))
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.dt = 0
 
-GRID0[ :][ 0] = 1
-GRID0[ :][19] = 1
-GRID0[ 0][ :] = 1
-GRID0[29][ :] = 1
+        #raycast
+        self.raycast = Raycast()
 
-def reset(walls=30):
-    global GRID, center
-    x, y = 0, 0
-    GRID = torch.alias_copy(GRID0)
-    for i in range(walls):
-        GRID[random.randint(0,29),random.randint(0,19)] = 1
-    GRID[random.randint(0,29),random.randint(0,19)] = 5
-    while GRID[x,y] != 0:
-        x = random.randint(0,29)
-        y = random.randint(0,19)
-    center = torch.tensor((x*20+10,y*20+10))
-reset()
-
-fov  = torch.deg2rad(torch.tensor(97))
-ray_num = 7
-rays = torch.ones([ray_num,2])[:]*center
-angle = 0
+        self.main()
+    def main(self):
+        self.rects = []
+        while self.running:
+            key = pygame.key.get_pressed()
+            mouse = pygame.mouse.get_pos()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+            self.screen.fill('black')
 
 
-while running:
-    key = pygame.key.get_pressed()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    screen.fill('grey')
+            input_mov = np.array((key[pygame.K_s] - key[pygame.K_w],key[pygame.K_d] - key[pygame.K_a]))
+            input_mov = input_mov*4/(np.linalg.norm(input_mov)) if np.linalg.norm(input_mov) != 0 else input_mov*0
+            theta = np.atan2(input_mov[0],input_mov[1])
+            px = -(input_mov[0] * np.cos(self.raycast.angle) - input_mov[1] * np.sin(self.raycast.angle))
+            py = -(input_mov[0] * np.sin(self.raycast.angle) + input_mov[1] * np.cos(self.raycast.angle))
+            self.raycast.center += np.int64(np.array((px,py)))
+            self.raycast.angle += np.deg2rad(30) * (key[pygame.K_RIGHT]-key[pygame.K_LEFT]) * self.dt
 
-    angle += -torch.deg2rad(torch.tensor((key[pygame.K_RIGHT] - key[pygame.K_LEFT])*5))
+            raycast = self.raycast.run(self)
+            print(raycast)
+            if 0 <= mouse[0] < 590 and 0 <= mouse[1] < 390:
+                self.rects.append((mouse[0],mouse[1],10,10))
+                self.raycast.grid[mouse[0]:mouse[0]+10,mouse[1]:mouse[1]+10] = 1
 
-    input_mov = torch.tensor((key[pygame.K_d] - key[pygame.K_a],key[pygame.K_s] - key[pygame.K_w])).type(torch.float64)
-    input_mov = input_mov*4/(torch.norm(input_mov)) if torch.norm(input_mov) != 0 else input_mov*0
+            # DRAW RECTS HERE
 
-    theta = torch.atan2(input_mov[0],input_mov[1])
+            print(np.rad2deg(self.raycast.angle))
 
-    px = -(input_mov[0] * torch.cos(-angle) - input_mov[1] * torch.sin(-angle))
-    py = -(input_mov[0] * torch.sin(-angle) + input_mov[1] * torch.cos(-angle))
+            for line in tuple(raycast[1]):
+                pygame.draw.line(self.screen,'red',raycast[0],line)
 
-    next_pos = center[0]+int(px),center[1]+int(px)
-    if GRID[next_pos[0]//20,center[1]//20] == 0:
-        center[0] += int(px)
-    elif GRID[next_pos[0]//20,center[1]//20] == 5:
-        reset()
-        #reward 
-    else:
-        center[0] -= int(px)
-        #punish
+            pygame.display.flip()
+            self.dt = self.clock.tick(60)/1000
 
-    if GRID[center[0]//20,next_pos[1]//20] == 0:
-        center[1] += int(py)
-    elif GRID[next_pos[0]//20,center[1]//20] == 5:
-        reset()
-        #reward 
-    else:
-        center[1] -= int(py)
-        # punish
-
-    direction = torch.tensor([(torch.cos((-angle+i*(fov/ray_num))+fov/2), torch.sin((-angle+i*(fov/ray_num))+fov/2)) for i in range(ray_num)])
-    rays[:] = torch.where(rays!=0,rays/rays,1)
-    rays[:] = rays*center
-    for i in range(400):
-        print(GRID.shape)
-        clean = GRID[(rays[:,0]//20).type(torch.int64),(rays[:,1]//20).type(torch.int64)] == 0
-        if i % 20 == 0:
-            for ray in tuple(rays[:]):
-                if GRID[int(ray[0]//20)][int(ray[1]//20)] == 1:
-                    pygame.draw.rect(screen,'red',(int(ray[0]//20)*20,int(ray[0]//20)*20,19,19))
-                elif GRID[int(ray[0]//20)][int(ray[1]//20)] == 5:
-                    #reward
-                    pygame.draw.rect(screen,'blue',(int(ray[0]//20)*20,int(ray[0]//20)*20,19,19))
-                else:
-                    pygame.draw.rect(screen,'green',(int(ray[0]//20)*20,int(ray[0]//20)*20,19,19))
-        rays[clean] += direction[clean]*1
-    hit   = GRID[(rays[:,0]//20).type(torch.int64),(rays[:,1]//20).type(torch.int64)] == 1
-    result = torch.zeros(ray_num)
-    result[hit] = 1 - torch.linalg.norm(rays[hit] - center, axis=1)/400
-
-    for ray in tuple(torch.alias_copy(rays)):
-        pygame.draw.line(screen,'red',tuple(center.type(int)),tuple(ray.type(int)))
-    #pygame.draw.line(screen,'blue',center,((mouse[0]*32/(n+0.00000000000001))+center[0],(mouse[1]*32/n+0.0000000000000001)+center[1]),1)
-    pygame.draw.circle(screen,'black',tuple(center.type(int)),5,1)
-
-    pygame.display.flip()
-    dt = clock.tick(30)/1000
-    t0 += dt
-running = False
+Game()

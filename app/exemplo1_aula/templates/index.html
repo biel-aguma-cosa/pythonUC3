@@ -101,6 +101,10 @@
             max-width: 256px;
             height: 90%;
         }
+        .evil {
+            margin-left: 50px;
+            color: red;
+        }
         .lock {
             flex-grow: 1;
             background-color: brown;
@@ -142,21 +146,26 @@
                 <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus accusantium doloremque, perferendis suscipit consectetur labore a ad, officiis iste autem dolores asperiores nisi ea ipsa. Officia doloribus praesentium voluptatum ea!</p>
             </article>
             <aside>
-                <form method="post" action="">
-                    {% csrf_token %}
-                    <label for="age">Confirme sua idade: </label>
-                    <input type="date" name="age" id="age" required>
-                    <button type="submit">verificar</button>
-                </form>
+                {% if response == "" %}
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <label for="age">Confirme sua idade: </label>
+                        <input type="date" name="age" id="age" required>
+                        <button type="submit">verificar</button>
+                    </form>
+                {% else %}
+                    <span class="response {{r_class}}"> {{ response }} </span>
+                {% endif %}
             </aside>
             {% if content %}
-            <aside>
-                <img src="https://media.tenor.com/IM836m7kzcQAAAAi/spinning-cat.gif" alt="">
-            </aside>
+                <aside>
+                    <img src="https://media.tenor.com/IM836m7kzcQAAAAi/spinning-cat.gif" alt="">
+                </aside>
             {% else %}
-            <div class="lock">
-                <strong>CONTENT BLOCKED!</strong>
-            </div>
+                <div class="lock">
+                    <strong>CONTENT BLOCKED!</strong>
+                </div>
+            {% endif %}
         </main>
         <footer>texto</footer>
     </div>

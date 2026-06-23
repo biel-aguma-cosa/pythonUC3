@@ -39,30 +39,12 @@ ray_num = 360
 rays = np.array([np.array(center,np.float64) for i in range(ray_num)])
 angle = 0
 
-shader = np.array(pygame.PixelArray(pygame.Surface([WIDTH,HEIGHT])))[:,:]+1
-print(shader.shape)
-def distance(point,line,pixels):
-    dx = rays[:,0] - center[0]
-    dy = rays[:,1] - center[1]
-    cx = rays[:,0] * center[1]
-    cy = rays[:,1] * center[0]
-    px = pixels[..., 0, np.newaxis]
-    py = pixels[..., 1, np.newaxis]
-    
-    top = np.abs(dy*px-dx*py+cx-cy)
-
-    bottom = np.sqrt(np.pow(dy,2)+np.pow(dx,2))
-
-    result = top/bottom
-eh = shader[:,:,np.newaxis]*(255,255,255)
-print(shader.shape)
-
 while running:
     key = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    screen.fill('grey')
+    screen.fill('black')
 
     angle += -np.deg2rad((key[pygame.K_RIGHT] - key[pygame.K_LEFT])*5)
 
@@ -94,7 +76,7 @@ while running:
         # punish
 
     direction = np.array([(np.cos((-angle+i*(fov/ray_num))+fov/2), np.sin((-angle+i*(fov/ray_num))+fov/2)) for i in range(ray_num)])
-    rays /= (rays+0.00000000000001)
+    rays[:] = np.array((1,1),np.float64)
     rays *= center
     for i in range(400):
         clean = GRID[np.int64(rays[:,0]//20),np.int64(rays[:,1]//20)] == 0
@@ -125,7 +107,6 @@ while running:
 
     pygame.display.flip()
     bop = []
-    pygame.surfarray.blit_array(screen,shader)
     dt = clock.tick(30)/1000
     t0 += dt
 running = False
